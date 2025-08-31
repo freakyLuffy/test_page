@@ -1,0 +1,165 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telecaster Pro Stats</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: var(--tg-theme-bg-color, #1c1d21);
+            color: var(--tg-theme-text-color, #ffffff);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overscroll-behavior: none;
+        }
+        .card { background-color: var(--tg-theme-secondary-bg-color, #2c2d30); }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .status-dot.active { background-color: #34c759; }
+        .status-dot.paused { background-color: #ff3b30; }
+        .tag { background-color: var(--tg-theme-button-color, #5288c1); color: var(--tg-theme-button-text-color, #ffffff); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const StatCard = ({ title, value, icon, subtext }) => (
+            <div className="card rounded-xl p-4 shadow-lg flex flex-col justify-between">
+                <div>
+                    <div className="flex items-center justify-between text-lg font-semibold opacity-80">
+                        <h3>{title}</h3>
+                        <div className="text-3xl">{icon}</div>
+                    </div>
+                    <p className="text-4xl font-bold mt-2">{value}</p>
+                </div>
+                {subtext && <p className="text-sm opacity-60 mt-2">{subtext}</p>}
+            </div>
+        );
+
+        const TargetCard = ({ target }) => {
+            const kwEnabled = target.filters_enabled.keywords;
+            const spamEnabled = target.filters_enabled.anti_spam;
+            return (
+                <div className="card rounded-lg p-3">
+                    <p className="font-bold text-lg truncate">Target ID: {target.id}</p>
+                    <div className="flex space-x-2 mt-2">
+                        <span className={`px-2 py-1 text-xs rounded-full ${kwEnabled ? 'tag' : 'opacity-50'}`}>
+                            {kwEnabled ? '✅' : '❌'} Keywords
+                        </span>
+                        <span className={`px-2 py-1 text-xs rounded-full ${spamEnabled ? 'tag' : 'opacity-50'}`}>
+                            {spamEnabled ? '✅' : '❌'} Anti-Spam
+                        </span>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [stats, setStats] = useState(null);
+            const [error, setError] = useState('');
+            const tg = window.Telegram.WebApp;
+
+            useEffect(() => {
+                tg.ready();
+                tg.expand();
+
+                try {
+                    const dataParam = new URLSearchParams(window.location.search).get('data');
+                    if (dataParam) {
+                        // If data is provided by the bot, use it
+                        setStats(JSON.parse(atob(dataParam)));
+                    } else {
+                        // If no data (opened directly), show mock data for preview
+                        console.warn("No data from bot. Displaying mock data for preview.");
+                        setStats({
+                            is_forwarding_active: true,
+                            uptime: "2d 5h 21m",
+                            messages_forwarded: 1337,
+                            source_count: 3,
+                            targets: [
+                                { id: -100123456, filters_enabled: { keywords: true, anti_spam: true } },
+                                { id: -100789123, filters_enabled: { keywords: false, anti_spam: true } },
+                            ],
+                            keyword_filter: {
+                                mode: 'blacklist',
+                                blacklist_keywords: ['sample', 'keywords'],
+                                whitelist_keywords: []
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error("Parsing error:", e);
+                    setError(`Could not load statistics: ${e.message}`);
+                }
+            }, []);
+
+            if (error) return <div className="p-4 text-center text-red-400 font-semibold">{error}</div>;
+            if (!stats) return <div className="p-4 text-center text-xl font-semibold animate-pulse">Loading Live Stats...</div>;
+
+            const { is_forwarding_active, uptime, messages_forwarded, source_count, targets, keyword_filter } = stats;
+
+            return (
+                <div className="p-4 space-y-5">
+                    <header className="text-center">
+                        <h1 className="text-3xl font-bold">Telecaster Pro</h1>
+                        <div className="flex items-center justify-center space-x-2 mt-1">
+                           <span className={`status-dot ${is_forwarding_active ? 'active' : 'paused'}`}></span>
+                           <span className="font-semibold">{is_forwarding_active ? 'Forwarding Active' : 'Forwarding Paused'}</span>
+                        </div>
+                    </header>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                        <StatCard title="Uptime" value={uptime} icon="⏳" />
+                        <StatCard title="Sent" value={messages_forwarded} icon="✉️" subtext="messages" />
+                        <StatCard title="Sources" value={source_count} icon="📚" />
+                        <StatCard title="Targets" value={targets.length} icon="🎯" />
+                    </div>
+
+                    <div className="card rounded-xl p-4 shadow-lg">
+                        <h3 className="text-lg font-semibold opacity-80 mb-2">Keyword Filter</h3>
+                        <p><span className="font-semibold">Mode:</span> <span className="tag px-2 py-1 text-sm rounded-full capitalize">{keyword_filter.mode}</span></p>
+                        <div className="flex justify-between mt-2 text-sm opacity-80">
+                            <span>Blacklisted: {keyword_filter.blacklist_keywords.length}</span>
+                            <span>Whitelisted: {keyword_filter.whitelist_keywords.length}</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 className="text-lg font-semibold opacity-80 mb-2">Target-Specific Filters</h3>
+                        {targets.length > 0 ? (
+                            <div className="space-y-2">
+                                {targets.map(t => <TargetCard key={t.id} target={t} />)}
+                            </div>
+                        ) : (
+                            <div className="card rounded-lg p-4">
+                                <p className="opacity-60 text-center">No targets configured.</p>
+                            </div>
+                        )}
+                    </div>
+
+                     <button
+                        onClick={() => tg.close()}
+                        className="w-full text-center py-3 rounded-lg mt-4 font-semibold"
+                        style={{ backgroundColor: tg.themeParams.button_color, color: tg.themeParams.button_text_color }}
+                     >
+                        Close
+                    </button>
+                </div>
+            );
+        };
+
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
