@@ -1,164 +1,333 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telecaster Pro Stats</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sphinx Bot Control Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --bg-color: #181a1b;
+            --secondary-bg-color: #25282a;
+            --text-color: #e8e6e3;
+            --primary-color: #5d8b94;
+            --destructive-color: #a95c5c;
+            --success-color: #5da974;
+        }
         body {
-            background-color: var(--tg-theme-bg-color, #1c1d21);
-            color: var(--tg-theme-text-color, #ffffff);
+            background-color: var(--bg-color);
+            color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             overscroll-behavior: none;
         }
-        .card { background-color: var(--tg-theme-secondary-bg-color, #2c2d30); }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-        .status-dot.active { background-color: #34c759; }
-        .status-dot.paused { background-color: #ff3b30; }
-        .tag { background-color: var(--tg-theme-button-color, #5288c1); color: var(--tg-theme-button-text-color, #ffffff); }
+        .card { background-color: var(--secondary-bg-color); }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-destructive { background-color: var(--destructive-color); color: white; }
+        .input-field { background-color: #3a3f42; border: 1px solid #4a4f52; color: var(--text-color); }
+        .modal-overlay { background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
+        .modal-content { background-color: var(--secondary-bg-color); }
+        .nav-item-active { color: var(--primary-color); }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useCallback, createContext, useContext } = React;
 
-        const StatCard = ({ title, value, icon, subtext }) => (
-            <div className="card rounded-xl p-4 shadow-lg flex flex-col justify-between">
-                <div>
-                    <div className="flex items-center justify-between text-lg font-semibold opacity-80">
-                        <h3>{title}</h3>
-                        <div className="text-3xl">{icon}</div>
-                    </div>
-                    <p className="text-4xl font-bold mt-2">{value}</p>
-                </div>
-                {subtext && <p className="text-sm opacity-60 mt-2">{subtext}</p>}
-            </div>
-        );
+        // --- Context for Global State ---
+        const AppContext = createContext();
 
-        const TargetCard = ({ target }) => {
-            const kwEnabled = target.filters_enabled.keywords;
-            const spamEnabled = target.filters_enabled.anti_spam;
-            return (
-                <div className="card rounded-lg p-3">
-                    <p className="font-bold text-lg truncate">Target ID: {target.id}</p>
-                    <div className="flex space-x-2 mt-2">
-                        <span className={`px-2 py-1 text-xs rounded-full ${kwEnabled ? 'tag' : 'opacity-50'}`}>
-                            {kwEnabled ? '✅' : '❌'} Keywords
-                        </span>
-                        <span className={`px-2 py-1 text-xs rounded-full ${spamEnabled ? 'tag' : 'opacity-50'}`}>
-                            {spamEnabled ? '✅' : '❌'} Anti-Spam
-                        </span>
-                    </div>
-                </div>
-            );
-        };
-
+        // --- Main App Component ---
         const App = () => {
-            const [stats, setStats] = useState(null);
+            const [page, setPage] = useState('loading');
+            const [userData, setUserData] = useState(null);
             const [error, setError] = useState('');
             const tg = window.Telegram.WebApp;
+
+            const sendDataToBot = useCallback((data) => {
+                try {
+                    tg.sendData(JSON.stringify(data));
+                } catch (e) {
+                    setError('Failed to communicate with the bot.');
+                    console.error(e);
+                }
+            }, [tg]);
 
             useEffect(() => {
                 tg.ready();
                 tg.expand();
+                tg.setHeaderColor('secondary_bg_color');
+                sendDataToBot({ command: 'getUserData' });
 
-                try {
-                    const dataParam = new URLSearchParams(window.location.search).get('data');
-                    if (dataParam) {
-                        // If data is provided by the bot, use it
-                        setStats(JSON.parse(atob(dataParam)));
-                    } else {
-                        // If no data (opened directly), show mock data for preview
-                        console.warn("No data from bot. Displaying mock data for preview.");
-                        setStats({
-                            is_forwarding_active: true,
-                            uptime: "2d 5h 21m",
-                            messages_forwarded: 1337,
-                            source_count: 3,
-                            targets: [
-                                { id: -100123456, filters_enabled: { keywords: true, anti_spam: true } },
-                                { id: -100789123, filters_enabled: { keywords: false, anti_spam: true } },
-                            ],
-                            keyword_filter: {
-                                mode: 'blacklist',
-                                blacklist_keywords: ['sample', 'keywords'],
-                                whitelist_keywords: []
+                const botResponseHandler = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.status === 'success') {
+                            setUserData(data.userData);
+                             // If the user just logged in successfully, move to dashboard
+                            if (page === 'login' && data.userData.session_exists) {
+                                setPage('dashboard');
                             }
-                        });
+                            // Initial load logic
+                            else if (page === 'loading') {
+                                if (data.userData.api_id && data.userData.api_hash && data.userData.session_exists) {
+                                    setPage('dashboard');
+                                } else {
+                                    setPage('login');
+                                }
+                            }
+                        } else if (data.status === 'requires_2fa') {
+                            setPage('login_2fa');
+                        } else {
+                            setError(data.message || 'An unknown error occurred.');
+                            setPage('error');
+                        }
+                    } catch (e) {
+                        setError('Invalid response from bot.');
+                        console.error("Failed to parse bot response:", e);
+                        setPage('error');
                     }
-                } catch (e) {
-                    console.error("Parsing error:", e);
-                    setError(`Could not load statistics: ${e.message}`);
+                };
+                
+                tg.onEvent('web_app_data_received', botResponseHandler);
+                return () => tg.offEvent('web_app_data_received', botResponseHandler);
+            }, [tg, sendDataToBot]);
+            
+            const renderPage = () => {
+                if (!userData && page !== 'loading') return <LoadingScreen text="Waiting for user data..." />;
+                switch(page) {
+                    case 'loading': return <LoadingScreen text="Connecting..." />;
+                    case 'login': return <LoginScreen setStep={setPage} />;
+                    case 'login_phone': return <LoginScreen initialStep="phone" setStep={setPage} />;
+                    case 'login_otp': return <LoginScreen initialStep="otp" setStep={setPage} />;
+                    case 'login_2fa': return <LoginScreen initialStep="2fa" setStep={setPage} />;
+                    case 'dashboard': return <MainLayout />;
+                    case 'error': return <ErrorScreen message={error} />;
+                    default: return <LoadingScreen text="Loading..." />;
                 }
-            }, []);
-
-            if (error) return <div className="p-4 text-center text-red-400 font-semibold">{error}</div>;
-            if (!stats) return <div className="p-4 text-center text-xl font-semibold animate-pulse">Loading Live Stats...</div>;
-
-            const { is_forwarding_active, uptime, messages_forwarded, source_count, targets, keyword_filter } = stats;
+            };
 
             return (
-                <div className="p-4 space-y-5">
-                    <header className="text-center">
-                        <h1 className="text-3xl font-bold">Telecaster Pro</h1>
-                        <div className="flex items-center justify-center space-x-2 mt-1">
-                           <span className={`status-dot ${is_forwarding_active ? 'active' : 'paused'}`}></span>
-                           <span className="font-semibold">{is_forwarding_active ? 'Forwarding Active' : 'Forwarding Paused'}</span>
+                <AppContext.Provider value={{ page, setPage, userData, setUserData, sendDataToBot, error, setError, tg }}>
+                    <div className="w-full min-h-screen pb-20">
+                        {renderPage()}
+                    </div>
+                </AppContext.Provider>
+            );
+        };
+        
+        // --- Screens & Components ---
+        const LoadingScreen = ({ text }) => (
+            <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                    <div className="text-4xl animate-pulse">Sphinx Bot</div>
+                    <div className="mt-2">{text}</div>
+                </div>
+            </div>
+        );
+
+        const ErrorScreen = ({ message }) => (
+            <div className="flex flex-col items-center justify-center h-screen p-4 text-center">
+                <h1 className="text-2xl font-bold text-destructive-color">An Error Occurred</h1>
+                <p className="mt-2 text-gray-400">{message}</p>
+            </div>
+        );
+
+        const LoginScreen = ({ initialStep = 'credentials', setStep: setPage }) => {
+            const { sendDataToBot, userData } = useContext(AppContext);
+            const [step, setStep] = useState(initialStep);
+            const [apiId, setApiId] = useState(userData?.api_id || '');
+            const [apiHash, setApiHash] = useState(userData?.api_hash || '');
+            const [phone, setPhone] = useState('');
+            const [otp, setOtp] = useState('');
+            const [password, setPassword] = useState('');
+
+            const handleAction = () => {
+                if (step === 'credentials') {
+                    sendDataToBot({ command: 'setApiCredentials', api_id: apiId, api_hash: apiHash });
+                    setStep('phone');
+                } else if (step === 'phone') {
+                    sendDataToBot({ command: 'sendOtp', phone_number: phone });
+                    setStep('otp');
+                } else if (step === 'otp') {
+                    sendDataToBot({ command: 'submitOtp', otp: otp });
+                } else if (step === '2fa') {
+                    sendDataToBot({ command: 'submit2fa', password: password });
+                }
+            };
+
+            return (
+                <div className="p-6">
+                    <h1 className="text-3xl font-bold text-center mb-6">Secure Login</h1>
+                    {step === 'credentials' && (
+                        <div className="space-y-4">
+                            <p className="text-center text-gray-400">Enter your Telegram API credentials.</p>
+                            <input type="text" placeholder="API ID" value={apiId} onChange={e => setApiId(e.target.value)} className="w-full p-3 rounded-lg input-field"/>
+                            <input type="text" placeholder="API Hash" value={apiHash} onChange={e => setApiHash(e.target.value)} className="w-full p-3 rounded-lg input-field"/>
                         </div>
-                    </header>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                        <StatCard title="Uptime" value={uptime} icon="⏳" />
-                        <StatCard title="Sent" value={messages_forwarded} icon="✉️" subtext="messages" />
-                        <StatCard title="Sources" value={source_count} icon="📚" />
-                        <StatCard title="Targets" value={targets.length} icon="🎯" />
-                    </div>
-
-                    <div className="card rounded-xl p-4 shadow-lg">
-                        <h3 className="text-lg font-semibold opacity-80 mb-2">Keyword Filter</h3>
-                        <p><span className="font-semibold">Mode:</span> <span className="tag px-2 py-1 text-sm rounded-full capitalize">{keyword_filter.mode}</span></p>
-                        <div className="flex justify-between mt-2 text-sm opacity-80">
-                            <span>Blacklisted: {keyword_filter.blacklist_keywords.length}</span>
-                            <span>Whitelisted: {keyword_filter.whitelist_keywords.length}</span>
+                    )}
+                    {step === 'phone' && (
+                        <div className="space-y-4">
+                            <p className="text-center text-gray-400">Enter your phone number in international format.</p>
+                            <input type="text" placeholder="+1234567890" value={phone} onChange={e => setPhone(e.target.value)} className="w-full p-3 rounded-lg input-field"/>
                         </div>
+                    )}
+                    {step === 'otp' && (
+                         <div className="space-y-4">
+                            <p className="text-center text-gray-400">An OTP has been sent to your Telegram account.</p>
+                            <input type="text" placeholder="OTP Code" value={otp} onChange={e => setOtp(e.target.value)} className="w-full p-3 rounded-lg input-field"/>
+                        </div>
+                    )}
+                     {step === '2fa' && (
+                         <div className="space-y-4">
+                             <p className="text-center text-gray-400">Your account has Two-Factor Authentication enabled. Please enter your password.</p>
+                             <input type="password" placeholder="2FA Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-3 rounded-lg input-field"/>
+                        </div>
+                    )}
+                    <div className="mt-8">
+                        <button onClick={handleAction} className="w-full p-3 rounded-lg btn-primary font-bold text-lg">
+                            {step === 'credentials' && 'Save & Continue'}
+                            {step === 'phone' && 'Send OTP'}
+                            {step === 'otp' && 'Submit OTP'}
+                            {step === '2fa' && 'Submit Password'}
+                        </button>
                     </div>
-
-                    <div>
-                        <h3 className="text-lg font-semibold opacity-80 mb-2">Target-Specific Filters</h3>
-                        {targets.length > 0 ? (
-                            <div className="space-y-2">
-                                {targets.map(t => <TargetCard key={t.id} target={t} />)}
-                            </div>
-                        ) : (
-                            <div className="card rounded-lg p-4">
-                                <p className="opacity-60 text-center">No targets configured.</p>
-                            </div>
-                        )}
-                    </div>
-
-                     <button
-                        onClick={() => tg.close()}
-                        className="w-full text-center py-3 rounded-lg mt-4 font-semibold"
-                        style={{ backgroundColor: tg.themeParams.button_color, color: tg.themeParams.button_text_color }}
-                     >
-                        Close
-                    </button>
                 </div>
             );
         };
 
+        const MainLayout = () => {
+            const [activeTab, setActiveTab] = useState('dashboard');
+            
+            const renderContent = () => {
+                switch(activeTab) {
+                    case 'dashboard': return <Dashboard />;
+                    case 'posts': return <ManagePosts />;
+                    case 'groups': return <ManageGroups />;
+                    case 'settings': return <Settings />;
+                    default: return <Dashboard />;
+                }
+            };
+
+            return (
+                <div>
+                    <div className="p-4">{renderContent()}</div>
+                    <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+                </div>
+            );
+        };
+        
+        const Dashboard = () => {
+            const { userData, sendDataToBot, tg } = useContext(AppContext);
+
+            const toggleForwarding = () => {
+                const command = userData.forwarding_on ? 'stopForwarding' : 'startForwarding';
+                sendDataToBot({ command });
+                tg.HapticFeedback.impactOccurred('light');
+            };
+
+            return (
+                <div className="space-y-5">
+                    <Header />
+                    <StatGrid />
+                    <button onClick={toggleForwarding} className={`w-full p-4 rounded-lg text-lg font-bold ${userData.forwarding_on ? 'btn-destructive' : 'btn-primary'}`}>
+                        {userData.forwarding_on ? 'Stop Forwarding' : 'Start Forwarding'}
+                    </button>
+                    <div className="card rounded-lg p-4">
+                        <h3 className="font-bold mb-2">Subscription</h3>
+                        <p>Your plan expires on: <span className="font-mono">{userData.expiry_date}</span></p>
+                    </div>
+                </div>
+            );
+        };
+
+        const ManagePosts = () => {
+            const { userData, sendDataToBot } = useContext(AppContext);
+            // Implement Add/Remove/List for userData.post_messages
+            return <div>Post management UI goes here.</div>
+        }
+
+        const ManageGroups = () => {
+            const { userData, sendDataToBot } = useContext(AppContext);
+            // Implement Add/Remove/List for userData.groups
+            return <div>Group management UI goes here.</div>
+        }
+
+        const Settings = () => {
+            const { userData, sendDataToBot } = useContext(AppContext);
+            // Implement settings toggles and logout
+            return (
+                <div className="space-y-4">
+                    <h1 className="text-2xl font-bold">Settings</h1>
+                    {/* Add settings controls here */}
+                     <button onClick={() => sendDataToBot({ command: 'logout' })} className="w-full p-3 rounded-md card">Logout & Clear Session</button>
+                </div>
+            );
+        }
+
+        const BottomNav = ({ activeTab, setActiveTab }) => {
+            const NavItem = ({ tab, icon, label }) => (
+                <button onClick={() => setActiveTab(tab)} className={`flex-1 flex flex-col items-center p-2 ${activeTab === tab ? 'nav-item-active' : ''}`}>
+                    <span className="text-2xl">{icon}</span>
+                    <span className="text-xs">{label}</span>
+                </button>
+            );
+
+            return (
+                <div className="fixed bottom-0 left-0 right-0 card flex border-t border-gray-700">
+                    <NavItem tab="dashboard" icon="🏠" label="Home" />
+                    <NavItem tab="posts" icon="📝" label="Posts" />
+                    <NavItem tab="groups" icon="👥" label="Groups" />
+                    <NavItem tab="settings" icon="⚙️" label="Settings" />
+                </div>
+            );
+        };
+
+        const Header = () => {
+            const { userData } = useContext(AppContext);
+            const statusClass = userData.forwarding_on ? 'bg-green-500' : 'bg-red-500';
+            const statusText = userData.forwarding_on ? 'Active' : 'Inactive';
+            
+            return (
+                 <div className="text-center p-4 card rounded-lg">
+                    <h1 className="text-3xl font-bold">Sphinx Control Panel</h1>
+                    <div className="flex items-center justify-center space-x-2 mt-1">
+                        <span className={`w-3 h-3 rounded-full ${statusClass}`}></span>
+                        <span>Forwarding: {statusText}</span>
+                    </div>
+                 </div>
+            );
+        };
+
+        const StatGrid = () => {
+             const { userData } = useContext(AppContext);
+             return (
+                <div className="grid grid-cols-2 gap-4">
+                    <StatCard title="Groups" value={userData.groups.length} />
+                    <StatCard title="Posts" value={userData.post_messages.length} />
+                    <StatCard title="Keywords" value={Object.keys(userData.keywords).length} />
+                    <StatCard title="Interval" value={`${userData.interval}s`} />
+                </div>
+             );
+        };
+
+        const StatCard = ({ title, value }) => (
+            <div className="p-4 text-center rounded-lg card">
+                <div className="text-gray-400">{title}</div>
+                <div className="text-2xl font-bold">{value}</div>
+            </div>
+        );
+
+        // --- Render the App ---
         const container = document.getElementById('root');
         const root = ReactDOM.createRoot(container);
         root.render(<App />);
+
     </script>
 </body>
 </html>
