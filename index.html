@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Marketing Bot Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -13,249 +13,520 @@
             background-color: #1a1a2e;
             color: #e0e0e0;
         }
+        
         .sidebar {
             background-color: #162447;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
         }
+        
+        .sidebar.show {
+            transform: translateX(0);
+        }
+        
+        .sidebar .nav-link {
+            color: #e0e0e0;
+            border-radius: 0.5rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: #1f4068;
+            color: #fff;
+        }
+        
+        .sidebar .nav-link i {
+            width: 24px;
+            margin-right: 12px;
+        }
+        
         .main-content {
             background-color: #1f4068;
+            min-height: 100vh;
+            margin-left: 0;
+            transition: margin-left 0.3s ease;
         }
+        
         .card {
             background-color: #1b1b3a;
-            border-radius: 1rem;
+            border: none;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+        
+        .card-header {
+            background-color: #162447;
+            border-bottom: 1px solid #333;
+        }
+        
         .btn-primary {
             background-color: #1f4068;
-            transition: background-color: 0.3s;
+            border-color: #1f4068;
         }
+        
         .btn-primary:hover {
             background-color: #162447;
+            border-color: #162447;
         }
+        
         .btn-danger {
             background-color: #e43f5a;
+            border-color: #e43f5a;
         }
+        
         .btn-danger:hover {
             background-color: #b43048;
+            border-color: #b43048;
         }
-        .modal-backdrop {
-            background-color: rgba(0, 0, 0, 0.7);
-        }
+        
         .modal-content {
             background-color: #1a1a2e;
+            border: 1px solid #333;
         }
-        .toast {
+        
+        .modal-header {
+            border-bottom: 1px solid #333;
+        }
+        
+        .form-control {
+            background-color: #333;
+            border: 1px solid #555;
+            color: #e0e0e0;
+        }
+        
+        .form-control:focus {
+            background-color: #333;
+            border-color: #1f4068;
+            color: #e0e0e0;
+            box-shadow: 0 0 0 0.2rem rgba(31, 64, 104, 0.25);
+        }
+        
+        .table {
+            color: #e0e0e0;
+        }
+        
+        .table thead th {
+            border-color: #333;
+            background-color: #162447;
+        }
+        
+        .table tbody tr {
+            border-color: #333;
+        }
+        
+        .table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .toast-container {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            color: white;
-            opacity: 0;
-            transition: opacity 0.3s, transform 0.3s;
-            transform: translateY(20px);
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 1055;
         }
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
+        
+        .toast {
+            background-color: #1b1b3a;
+            border: 1px solid #333;
+            color: #e0e0e0;
         }
-        .toast.success { background-color: #28a745; }
-        .toast.error { background-color: #dc3545; }
+        
+        .toast.bg-success {
+            background-color: #28a745 !important;
+        }
+        
+        .toast.bg-danger {
+            background-color: #dc3545 !important;
+        }
+        
+        .navbar-toggler {
+            border: none;
+            color: #e0e0e0;
+        }
+        
+        .navbar-toggler:focus {
+            box-shadow: none;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+        
+        .overlay.show {
+            display: block;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #1b1b3a 0%, #162447 100%);
+            border: none;
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .account-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #1f4068 0%, #e43f5a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .validation-result {
+            background-color: #0d1117;
+            border: 1px solid #333;
+        }
+        
+        @media (min-width: 992px) {
+            .sidebar {
+                position: relative;
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .stat-number {
+                font-size: 1.75rem;
+            }
+        }
     </style>
 </head>
-<body class="flex h-screen">
-
-    <!-- Sidebar -->
-    <aside class="sidebar w-64 flex-shrink-0 p-4 space-y-4">
-        <div class="text-2xl font-bold text-center">TeleBot Dash</div>
-        <nav class="space-y-2">
-            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="dashboard">
-                <i class="fas fa-tachometer-alt w-6"></i><span>Dashboard</span>
-            </a>
-            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="campaigns">
-                <i class="fas fa-bullhorn w-6"></i><span>Campaigns</span>
-            </a>
-            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="accounts">
-                <i class="fas fa-users w-6"></i><span>Accounts</span>
-            </a>
-            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="customer-finder">
-                <i class="fas fa-search-dollar w-6"></i><span>Customer Finder</span>
-            </a>
-            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="management">
-                <i class="fas fa-tasks w-6"></i><span>Management</span>
-            </a>
-            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="targeting">
-                <i class="fas fa-crosshairs w-6"></i><span>Targeting</span>
-            </a>
-            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="link-validator">
-                <i class="fas fa-link w-6"></i><span>Link Validator</span>
-            </a>
-        </nav>
-        <div class="absolute bottom-4 left-4">
-            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="settings">
-                <i class="fas fa-cog w-6"></i><span>Settings</span>
-            </a>
-        </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content flex-1 p-8 overflow-y-auto">
-        <!-- Dashboard Section -->
-        <section id="dashboard" class="space-y-8">
-            <h1 class="text-4xl font-bold">Dashboard</h1>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="card p-6">
-                    <h2 class="text-lg font-semibold">Active Campaigns</h2>
-                    <p id="stats-campaigns" class="text-3xl font-bold">0</p>
-                </div>
-                <div class="card p-6">
-                    <h2 class="text-lg font-semibold">Accounts Linked</h2>
-                    <p id="stats-accounts" class="text-3xl font-bold">0</p>
-                </div>
-                <div class="card p-6">
-                    <h2 class="text-lg font-semibold">Customers Found</h2>
-                    <p id="stats-customers" class="text-3xl font-bold">0</p>
-                </div>
-                <div class="card p-6">
-                    <h2 class="text-lg font-semibold">Messages Sent</h2>
-                    <p id="stats-messages" class="text-3xl font-bold">0</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Campaigns Section -->
-        <section id="campaigns" class="hidden space-y-8">
-            <div class="flex justify-between items-center">
-                <h1 class="text-4xl font-bold">Automated Campaigns</h1>
-                <button id="createCampaignBtn" class="btn-primary text-white font-bold py-2 px-4 rounded-lg">Create Campaign</button>
-            </div>
-            <div class="card p-6">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr>
-                            <th class="p-2">Name</th>
-                            <th class="p-2">Status</th>
-                            <th class="p-2">Sent</th>
-                            <th class="p-2">Replies</th>
-                            <th class="p-2">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="campaigns-table-body">
-                        <!-- Campaigns will be dynamically inserted here -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Accounts Section -->
-        <section id="accounts" class="hidden space-y-8">
-             <div class="flex justify-between items-center">
-                <h1 class="text-4xl font-bold">Multi-Account Mastery</h1>
-                <button id="addAccountBtn" class="btn-primary text-white font-bold py-2 px-4 rounded-lg">Add Account</button>
-            </div>
-            <div id="accounts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Accounts will be dynamically inserted here -->
-            </div>
-        </section>
-
-        <!-- Customer Finder, Management, Targeting, Settings sections remain the same conceptually -->
-        <section id="customer-finder" class="hidden space-y-8">
-            <h1 class="text-4xl font-bold">Smart Customer Finder</h1>
-            <div class="card p-6">
-                <h2 class="text-2xl font-bold mb-4">Smart Replies & Forwards</h2>
-                <div class="flex items-center justify-between">
-                    <p>Enable smart replies to automatically engage potential customers.</p>
-                    <button id="toggle-smart-replies" class="btn-primary text-white font-bold py-2 px-4 rounded-lg">Enable</button>
-                </div>
-            </div>
-        </section>
-        
-        <section id="management" class="hidden space-y-8">
-            <h1 class="text-4xl font-bold">Streamlined Management</h1>
-            <div class="card p-6">
-                <h2 class="text-2xl font-bold mb-4">Manage Groups & Channels</h2>
-                <p>Bulk add/remove members, post announcements, and manage topics.</p>
-            </div>
-        </section>
-
-        <section id="targeting" class="hidden space-y-8">
-            <h1 class="text-4xl font-bold">Precision Targeting</h1>
-             <div class="card p-6">
-                <h2 class="text-2xl font-bold mb-4">Filter & Extract Audience</h2>
-                <p>Define criteria to extract a targeted list of users for your campaigns.</p>
-            </div>
-        </section>
-
-        <!-- Link Validator Section -->
-        <section id="link-validator" class="hidden space-y-8">
-            <h1 class="text-4xl font-bold">Link Validator</h1>
-            <div class="card p-6">
-                <h2 class="text-2xl font-bold mb-4">Telegram Link to Validate</h2>
-                <div class="flex items-center space-x-4 mb-6">
-                    <input type="text" id="link-to-validate" class="w-full p-2 bg-gray-700 rounded" placeholder="e.g., t.me/AdBitOfficial">
-                    <button id="validate-link-btn" class="btn-primary text-white font-bold py-2 px-4 rounded-lg whitespace-nowrap">Validate Link</button>
-                </div>
-                <div class="mt-6 p-4 bg-gray-900 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-2">Validation Result:</h3>
-                    <p><span class="font-bold">Status:</span> <span id="validation-status">Pending...</span></p>
-                    <p><span class="font-bold">Last Checked:</span> <span id="validation-last-checked">N/A</span></p>
-                </div>
-                <div class="mt-4 text-sm text-gray-400">
-                    <p><span class="font-bold text-green-500">Example Valid:</span> `t.me/AdBitOfficial` - Active (Public Channel)</p>
-                    <p><span class="font-bold text-red-500">Example Invalid:</span> `t.me/expired_group_link` - Not Found (404)</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="settings" class="hidden space-y-8">
-            <h1 class="text-4xl font-bold">Settings</h1>
-            <div class="card p-6">
-                <h2 class="text-2xl font-bold mb-4">Security</h2>
-                <p>Manage your account security, including two-factor authentication.</p>
-            </div>
-        </section>
-    </main>
+<body>
+    <!-- Mobile Menu Overlay -->
+    <div class="overlay" id="sidebarOverlay"></div>
     
-    <!-- Modals -->
-    <div id="addAccountModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center">
-        <div class="modal-content p-8 rounded-lg shadow-xl w-full max-w-md">
-            <h2 class="text-2xl font-bold mb-4">Add New Account</h2>
-            <form id="addAccountForm">
-                 <div class="mb-4">
-                    <label for="accountName" class="block mb-2">Account Name (e.g., @username)</label>
-                    <input type="text" id="accountName" class="w-full p-2 bg-gray-700 rounded" required>
+    <!-- Top Navigation for Mobile -->
+    <nav class="navbar navbar-expand-lg d-lg-none" style="background-color: #162447;">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1 text-white">TeleBot Dash</span>
+            <button class="navbar-toggler" type="button" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-lg-3 col-xl-2 sidebar p-0" id="sidebar">
+                <div class="p-4">
+                    <div class="text-center mb-4 d-none d-lg-block">
+                        <h2 class="h3 text-white fw-bold">TeleBot Dash</h2>
+                    </div>
+                    
+                    <ul class="nav nav-pills flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" data-section="dashboard">
+                                <i class="fas fa-tachometer-alt"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="campaigns">
+                                <i class="fas fa-bullhorn"></i>Campaigns
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="accounts">
+                                <i class="fas fa-users"></i>Accounts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="customer-finder">
+                                <i class="fas fa-search-dollar"></i>Customer Finder
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="management">
+                                <i class="fas fa-tasks"></i>Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="targeting">
+                                <i class="fas fa-crosshairs"></i>Targeting
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-section="link-validator">
+                                <i class="fas fa-link"></i>Link Validator
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="mt-auto pt-4">
+                        <ul class="nav nav-pills flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" data-section="settings">
+                                    <i class="fas fa-cog"></i>Settings
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                <p class="mb-4 text-sm text-gray-400">In a real application, you would upload your Telegram session file here to securely add an account.</p>
-                <div class="flex justify-end space-x-4">
-                    <button type="button" id="cancelAddAccount" class="text-gray-400">Cancel</button>
-                    <button type="submit" class="btn-primary text-white font-bold py-2 px-4 rounded-lg">Add Account</button>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-lg-9 col-xl-10 main-content">
+                <div class="p-3 p-md-4">
+                    <!-- Dashboard Section -->
+                    <section id="dashboard">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h1 class="display-6 fw-bold">Dashboard</h1>
+                        </div>
+                        
+                        <div class="row g-3 g-md-4 mb-5">
+                            <div class="col-6 col-lg-3">
+                                <div class="card stat-card h-100">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Active Campaigns</h5>
+                                        <p class="display-4 stat-number fw-bold mb-0" id="stats-campaigns">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-3">
+                                <div class="card stat-card h-100">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Accounts Linked</h5>
+                                        <p class="display-4 stat-number fw-bold mb-0" id="stats-accounts">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-3">
+                                <div class="card stat-card h-100">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Customers Found</h5>
+                                        <p class="display-4 stat-number fw-bold mb-0" id="stats-customers">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-3">
+                                <div class="card stat-card h-100">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Messages Sent</h5>
+                                        <p class="display-4 stat-number fw-bold mb-0" id="stats-messages">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Campaigns Section -->
+                    <section id="campaigns" class="d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h1 class="display-6 fw-bold">Automated Campaigns</h1>
+                            <button id="createCampaignBtn" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Create Campaign
+                            </button>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Status</th>
+                                                <th>Sent</th>
+                                                <th>Replies</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="campaigns-table-body">
+                                            <!-- Campaigns will be dynamically inserted here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Accounts Section -->
+                    <section id="accounts" class="d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h1 class="display-6 fw-bold">Multi-Account Mastery</h1>
+                            <button id="addAccountBtn" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Add Account
+                            </button>
+                        </div>
+                        
+                        <div class="row g-3 g-md-4" id="accounts-grid">
+                            <!-- Accounts will be dynamically inserted here -->
+                        </div>
+                    </section>
+
+                    <!-- Customer Finder Section -->
+                    <section id="customer-finder" class="d-none">
+                        <h1 class="display-6 fw-bold mb-4">Smart Customer Finder</h1>
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Smart Replies & Forwards</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <p class="mb-0">Enable smart replies to automatically engage potential customers.</p>
+                                    <button id="toggle-smart-replies" class="btn btn-primary">Enable</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Management Section -->
+                    <section id="management" class="d-none">
+                        <h1 class="display-6 fw-bold mb-4">Streamlined Management</h1>
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Manage Groups & Channels</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-0">Bulk add/remove members, post announcements, and manage topics.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Targeting Section -->
+                    <section id="targeting" class="d-none">
+                        <h1 class="display-6 fw-bold mb-4">Precision Targeting</h1>
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Filter & Extract Audience</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-0">Define criteria to extract a targeted list of users for your campaigns.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Link Validator Section -->
+                    <section id="link-validator" class="d-none">
+                        <h1 class="display-6 fw-bold mb-4">Link Validator</h1>
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Telegram Link to Validate</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3 mb-4">
+                                    <div class="col-12 col-md-8">
+                                        <input type="text" id="link-to-validate" class="form-control" placeholder="e.g., t.me/AdBitOfficial">
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <button id="validate-link-btn" class="btn btn-primary w-100">Validate Link</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="validation-result rounded p-3 mb-3">
+                                    <h6 class="fw-bold mb-2">Validation Result:</h6>
+                                    <p class="mb-1"><span class="fw-bold">Status:</span> <span id="validation-status">Pending...</span></p>
+                                    <p class="mb-0"><span class="fw-bold">Last Checked:</span> <span id="validation-last-checked">N/A</span></p>
+                                </div>
+                                
+                                <div class="small text-muted">
+                                    <p class="mb-1"><span class="fw-bold text-success">Example Valid:</span> t.me/AdBitOfficial - Active (Public Channel)</p>
+                                    <p class="mb-0"><span class="fw-bold text-danger">Example Invalid:</span> t.me/expired_group_link - Not Found (404)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Settings Section -->
+                    <section id="settings" class="d-none">
+                        <h1 class="display-6 fw-bold mb-4">Settings</h1>
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Security</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-0">Manage your account security, including two-factor authentication.</p>
+                            </div>
+                        </div>
+                    </section>
                 </div>
-            </form>
+            </main>
         </div>
     </div>
 
-    <div id="createCampaignModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center">
-        <div class="modal-content p-8 rounded-lg shadow-xl w-full max-w-lg">
-            <h2 class="text-2xl font-bold mb-4">Create a New Campaign</h2>
-            <form id="createCampaignForm">
-                <div class="mb-4">
-                    <label class="block mb-2">Campaign Name</label>
-                    <input type="text" id="campaignName" class="w-full p-2 bg-gray-700 rounded" required>
+    <!-- Add Account Modal -->
+    <div class="modal fade" id="addAccountModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Account</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="mb-4">
-                    <label class="block mb-2">Message</label>
-                    <textarea id="campaignMessage" class="w-full p-2 bg-gray-700 rounded" rows="4" required></textarea>
-                </div>
-                <div class="flex justify-end space-x-4">
-                    <button id="cancelCreateCampaign" type="button" class="text-gray-400">Cancel</button>
-                    <button type="submit" class="btn-primary text-white font-bold py-2 px-4 rounded-lg">Launch Campaign</button>
-                </div>
-            </form>
+                <form id="addAccountForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="accountName" class="form-label">Account Name (e.g., @username)</label>
+                            <input type="text" id="accountName" class="form-control" required>
+                        </div>
+                        <p class="small text-muted">In a real application, you would upload your Telegram session file here to securely add an account.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Account</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast"></div>
+    <!-- Create Campaign Modal -->
+    <div class="modal fade" id="createCampaignModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create a New Campaign</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="createCampaignForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="campaignName" class="form-label">Campaign Name</label>
+                            <input type="text" id="campaignName" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="campaignMessage" class="form-label">Message</label>
+                            <textarea id="campaignMessage" class="form-control" rows="4" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Launch Campaign</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
+    <!-- Toast Container -->
+    <div class="toast-container">
+        <div id="toast" class="toast" role="alert">
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -271,12 +542,19 @@
                 messagingSenderId: "...",
                 appId: "..."
             };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         let app, auth, db, userId;
+        let addAccountModal, createCampaignModal, toastElement;
+
+        // Initialize Bootstrap components
+        document.addEventListener('DOMContentLoaded', function() {
+            addAccountModal = new bootstrap.Modal(document.getElementById('addAccountModal'));
+            createCampaignModal = new bootstrap.Modal(document.getElementById('createCampaignModal'));
+            toastElement = new bootstrap.Toast(document.getElementById('toast'));
+        });
 
         async function initializeFirebase() {
-             try {
+            try {
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
@@ -297,26 +575,53 @@
                 }
             } catch (e) {
                 console.error("Firebase initialization failed:", e);
-                showToast("Firebase not configured correctly. App is in read-only mode.", "error");
+                showToast("Firebase not configured correctly. App is in read-only mode.", "danger");
             }
         }
         
         initializeFirebase();
 
+        // Mobile sidebar toggle
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
 
-        // --- UI NAVIGATION ---
+        sidebarToggle?.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        });
+
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+        });
+
+        // Navigation
         const sections = document.querySelectorAll('main section');
-        const navLinks = document.querySelectorAll('nav a, .absolute a');
+        const navLinks = document.querySelectorAll('.nav-link[data-section]');
 
         navLinks.forEach(link => {
             link.addEventListener('click', e => {
                 e.preventDefault();
                 const sectionId = link.getAttribute('data-section');
-                sections.forEach(section => section.id === sectionId ? section.classList.remove('hidden') : section.classList.add('hidden'));
+                
+                // Update active nav link
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                
+                // Show/hide sections
+                sections.forEach(section => {
+                    section.classList.toggle('d-none', section.id !== sectionId);
+                });
+
+                // Close mobile sidebar
+                if (window.innerWidth < 992) {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                }
             });
         });
 
-        // --- DATA LOADING & RENDERING ---
         function loadInitialData() {
             if (!userId) return;
             loadAccounts();
@@ -342,45 +647,54 @@
                 accountsGrid.innerHTML = '';
                 snapshot.forEach(doc => {
                     const account = doc.data();
-                    const accountCard = `
-                        <div class="card p-6 flex items-center justify-between space-x-4">
-                            <div class="flex items-center space-x-4">
-                               <img src="https://placehold.co/64x64/1f4068/e0e0e0?text=${account.name.charAt(0).toUpperCase()}" class="rounded-full">
-                                <div>
-                                    <p class="font-bold">${account.name}</p>
-                                    <p class="text-sm text-green-500">Active</p>
+                    const accountCard = document.createElement('div');
+                    accountCard.className = 'col-12 col-md-6 col-lg-4';
+                    accountCard.innerHTML = `
+                        <div class="card h-100">
+                            <div class="card-body d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <div class="account-avatar rounded-circle me-3">
+                                        ${account.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">${account.name}</h6>
+                                        <small class="text-success">Active</small>
+                                    </div>
                                 </div>
+                                <button data-id="${doc.id}" class="delete-account-btn btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
-                            <button data-id="${doc.id}" class="delete-account-btn btn-danger text-white font-bold py-1 px-3 rounded-lg text-xs">Delete</button>
                         </div>`;
-                    accountsGrid.innerHTML += accountCard;
+                    accountsGrid.appendChild(accountCard);
                 });
             });
         }
         
         function loadCampaigns() {
             const campaignsColRef = collection(db, "users", userId, "campaigns");
-             onSnapshot(campaignsColRef, (snapshot) => {
+            onSnapshot(campaignsColRef, (snapshot) => {
                 const campaignsBody = document.getElementById('campaigns-table-body');
                 campaignsBody.innerHTML = '';
                 snapshot.forEach(doc => {
                     const campaign = doc.data();
-                    const campaignRow = `
-                        <tr>
-                            <td class="p-2">${campaign.name}</td>
-                            <td class="p-2 text-green-500">Active</td>
-                            <td class="p-2">${campaign.sent || 0}</td>
-                            <td class="p-2">${campaign.replies || 0}</td>
-                            <td class="p-2">
-                                <button data-id="${doc.id}" class="delete-campaign-btn text-red-500 hover:underline">Delete</button>
-                            </td>
-                        </tr>`;
-                    campaignsBody.innerHTML += campaignRow;
+                    const campaignRow = document.createElement('tr');
+                    campaignRow.innerHTML = `
+                        <td>${campaign.name}</td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td>${campaign.sent || 0}</td>
+                        <td>${campaign.replies || 0}</td>
+                        <td>
+                            <button data-id="${doc.id}" class="delete-campaign-btn btn btn-outline-danger btn-sm">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>`;
+                    campaignsBody.appendChild(campaignRow);
                 });
             });
         }
 
-        // --- ACTIONS & EVENT LISTENERS ---
+        // Form handlers
         document.getElementById('addAccountForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const accountName = document.getElementById('accountName').value;
@@ -394,39 +708,40 @@
                 });
                 await updateStats('accounts', 1);
                 showToast('Account added successfully!', 'success');
-                closeModal('addAccountModal');
+                addAccountModal.hide();
                 e.target.reset();
             } catch (err) {
-                showToast('Failed to add account.', 'error');
+                showToast('Failed to add account.', 'danger');
                 console.error(err);
             }
         });
 
         document.getElementById('createCampaignForm').addEventListener('submit', async (e) => {
-             e.preventDefault();
-             const campaignName = document.getElementById('campaignName').value;
-             const campaignMessage = document.getElementById('campaignMessage').value;
-             if(!campaignName.trim() || !campaignMessage.trim()) return;
+            e.preventDefault();
+            const campaignName = document.getElementById('campaignName').value;
+            const campaignMessage = document.getElementById('campaignMessage').value;
+            if(!campaignName.trim() || !campaignMessage.trim()) return;
 
-             try {
-                 await addDoc(collection(db, `users/${userId}/campaigns`), {
-                     name: campaignName,
-                     message: campaignMessage,
-                     status: 'active',
-                     sent: 0,
-                     replies: 0,
-                     createdAt: serverTimestamp()
-                 });
-                 await updateStats('campaigns', 1);
-                 showToast('Campaign created successfully!', 'success');
-                 closeModal('createCampaignModal');
-                 e.target.reset();
-             } catch(err) {
-                 showToast('Failed to create campaign.', 'error');
-                 console.error(err);
-             }
+            try {
+                await addDoc(collection(db, `users/${userId}/campaigns`), {
+                    name: campaignName,
+                    message: campaignMessage,
+                    status: 'active',
+                    sent: 0,
+                    replies: 0,
+                    createdAt: serverTimestamp()
+                });
+                await updateStats('campaigns', 1);
+                showToast('Campaign created successfully!', 'success');
+                createCampaignModal.hide();
+                e.target.reset();
+            } catch(err) {
+                showToast('Failed to create campaign.', 'danger');
+                console.error(err);
+            }
         });
 
+        // Link validator
         document.getElementById('validate-link-btn').addEventListener('click', () => {
             const linkInput = document.getElementById('link-to-validate');
             const statusEl = document.getElementById('validation-status');
@@ -434,56 +749,66 @@
             const link = linkInput.value.trim();
 
             if (!link || !link.toLowerCase().includes('t.me/')) {
-                showToast('Please enter a valid Telegram link (e.g., t.me/username)', 'error');
+                showToast('Please enter a valid Telegram link (e.g., t.me/username)', 'danger');
                 return;
             }
 
             statusEl.textContent = 'Validating...';
-            statusEl.className = 'text-yellow-500';
+            statusEl.className = 'text-warning';
             lastCheckedEl.textContent = 'N/A';
 
-            // Simulate API call
             setTimeout(() => {
                 const isValid = Math.random() > 0.4; // 60% chance of being valid
                 if (isValid) {
                     statusEl.textContent = 'Active (Public Channel/Group)';
-                    statusEl.className = 'text-green-500';
+                    statusEl.className = 'text-success';
                 } else {
                     statusEl.textContent = 'Not Found (404) or Private';
-                    statusEl.className = 'text-red-500';
+                    statusEl.className = 'text-danger';
                 }
                 lastCheckedEl.textContent = new Date().toLocaleString();
             }, 1500);
         });
-        
-        // --- Deletion Listeners (using event delegation)
+
+        // Button event handlers
+        document.getElementById('addAccountBtn').addEventListener('click', () => {
+            addAccountModal.show();
+        });
+
+        document.getElementById('createCampaignBtn').addEventListener('click', () => {
+            createCampaignModal.show();
+        });
+
+        // Delete handlers using event delegation
         document.addEventListener('click', async (e) => {
-            if (e.target.classList.contains('delete-account-btn')) {
-                const docId = e.target.dataset.id;
+            if (e.target.classList.contains('delete-account-btn') || e.target.closest('.delete-account-btn')) {
+                const btn = e.target.classList.contains('delete-account-btn') ? e.target : e.target.closest('.delete-account-btn');
+                const docId = btn.dataset.id;
                 if (confirm('Are you sure you want to delete this account?')) {
                     try {
                         await deleteDoc(doc(db, `users/${userId}/accounts`, docId));
                         await updateStats('accounts', -1);
                         showToast('Account deleted.', 'success');
                     } catch (err) {
-                        showToast('Error deleting account.', 'error');
+                        showToast('Error deleting account.', 'danger');
                     }
                 }
             }
-            if (e.target.classList.contains('delete-campaign-btn')) {
-                const docId = e.target.dataset.id;
-                 if (confirm('Are you sure you want to delete this campaign?')) {
+            
+            if (e.target.classList.contains('delete-campaign-btn') || e.target.closest('.delete-campaign-btn')) {
+                const btn = e.target.classList.contains('delete-campaign-btn') ? e.target : e.target.closest('.delete-campaign-btn');
+                const docId = btn.dataset.id;
+                if (confirm('Are you sure you want to delete this campaign?')) {
                     try {
                         await deleteDoc(doc(db, `users/${userId}/campaigns`, docId));
                         await updateStats('campaigns', -1);
                         showToast('Campaign deleted.', 'success');
                     } catch (err) {
-                        showToast('Error deleting campaign.', 'error');
+                        showToast('Error deleting campaign.', 'danger');
                     }
                 }
             }
         });
-
 
         async function updateStats(field, increment) {
             const statsDocRef = doc(db, "users", userId, "stats", "summary");
@@ -502,30 +827,42 @@
             }
         }
 
-
-        // --- MODAL HANDLING ---
-        const addAccountModal = document.getElementById('addAccountModal');
-        const createCampaignModal = document.getElementById('createCampaignModal');
-
-        const openModal = (modalId) => document.getElementById(modalId).classList.remove('hidden');
-        const closeModal = (modalId) => document.getElementById(modalId).classList.add('hidden');
-
-        document.getElementById('addAccountBtn').addEventListener('click', () => openModal('addAccountModal'));
-        document.getElementById('cancelAddAccount').addEventListener('click', () => closeModal('addAccountModal'));
-        document.getElementById('createCampaignBtn').addEventListener('click', () => openModal('createCampaignModal'));
-        document.getElementById('cancelCreateCampaign').addEventListener('click', () => closeModal('createCampaignModal'));
-
-        // --- UTILITIES ---
         function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast show ${type}`;
-            setTimeout(() => {
-                toast.className = 'toast';
-            }, 3000);
+            const toastBody = document.querySelector('#toast .toast-body');
+            const toastEl = document.getElementById('toast');
+            
+            toastBody.textContent = message;
+            toastEl.className = `toast bg-${type}`;
+            
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
         }
+
+        // Smart replies toggle
+        document.getElementById('toggle-smart-replies').addEventListener('click', function() {
+            const btn = this;
+            const isEnabled = btn.textContent === 'Disable';
+            
+            if (isEnabled) {
+                btn.textContent = 'Enable';
+                btn.className = 'btn btn-primary';
+                showToast('Smart replies disabled', 'warning');
+            } else {
+                btn.textContent = 'Disable';
+                btn.className = 'btn btn-success';
+                showToast('Smart replies enabled', 'success');
+            }
+        });
+
+        // Handle window resize for sidebar
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 992) {
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
+            }
+        });
 
     </script>
 </body>
 </html>
-
+                
