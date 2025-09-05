@@ -2,331 +2,528 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sphinx Bot Control Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Marketing Bot Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --bg-color: #181a1b;
-            --secondary-bg-color: #25282a;
-            --text-color: #e8e6e3;
-            --primary-color: #5d8b94;
-            --destructive-color: #a95c5c;
-            --success-color: #5da974;
-        }
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            overscroll-behavior: none;
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
         }
-        .card { background-color: var(--secondary-bg-color); }
-        .btn-primary { background-color: var(--primary-color); color: white; }
-        .btn-destructive { background-color: var(--destructive-color); color: white; }
-        .input-field { background-color: #3a3f42; border: 1px solid #4a4f52; color: var(--text-color); }
-        .modal-overlay { background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
-        .modal-content { background-color: var(--secondary-bg-color); }
-        .nav-item-active { color: var(--primary-color); }
+        .sidebar {
+            background-color: #162447;
+        }
+        .main-content {
+            background-color: #1f4068;
+        }
+        .card {
+            background-color: #1b1b3a;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #1f4068;
+            transition: background-color: 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #162447;
+        }
+        .btn-danger {
+            background-color: #e43f5a;
+        }
+        .btn-danger:hover {
+            background-color: #b43048;
+        }
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        .modal-content {
+            background-color: #1a1a2e;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            transform: translateY(20px);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast.success { background-color: #28a745; }
+        .toast.error { background-color: #dc3545; }
     </style>
 </head>
-<body>
-    <div id="root"></div>
+<body class="flex h-screen">
 
-    <script type="text/babel">
-        const { useState, useEffect, useCallback, createContext, useContext } = React;
+    <!-- Sidebar -->
+    <aside class="sidebar w-64 flex-shrink-0 p-4 space-y-4">
+        <div class="text-2xl font-bold text-center">TeleBot Dash</div>
+        <nav class="space-y-2">
+            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="dashboard">
+                <i class="fas fa-tachometer-alt w-6"></i><span>Dashboard</span>
+            </a>
+            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="campaigns">
+                <i class="fas fa-bullhorn w-6"></i><span>Campaigns</span>
+            </a>
+            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="accounts">
+                <i class="fas fa-users w-6"></i><span>Accounts</span>
+            </a>
+            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="customer-finder">
+                <i class="fas fa-search-dollar w-6"></i><span>Customer Finder</span>
+            </a>
+            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="management">
+                <i class="fas fa-tasks w-6"></i><span>Management</span>
+            </a>
+            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="targeting">
+                <i class="fas fa-crosshairs w-6"></i><span>Targeting</span>
+            </a>
+            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="link-validator">
+                <i class="fas fa-link w-6"></i><span>Link Validator</span>
+            </a>
+        </nav>
+        <div class="absolute bottom-4 left-4">
+            <a href="#" class="flex items-center p-2 rounded-lg hover:bg-blue-800" data-section="settings">
+                <i class="fas fa-cog w-6"></i><span>Settings</span>
+            </a>
+        </div>
+    </aside>
 
-        // --- Context for Global State ---
-        const AppContext = createContext();
+    <!-- Main Content -->
+    <main class="main-content flex-1 p-8 overflow-y-auto">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="space-y-8">
+            <h1 class="text-4xl font-bold">Dashboard</h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="card p-6">
+                    <h2 class="text-lg font-semibold">Active Campaigns</h2>
+                    <p id="stats-campaigns" class="text-3xl font-bold">0</p>
+                </div>
+                <div class="card p-6">
+                    <h2 class="text-lg font-semibold">Accounts Linked</h2>
+                    <p id="stats-accounts" class="text-3xl font-bold">0</p>
+                </div>
+                <div class="card p-6">
+                    <h2 class="text-lg font-semibold">Customers Found</h2>
+                    <p id="stats-customers" class="text-3xl font-bold">0</p>
+                </div>
+                <div class="card p-6">
+                    <h2 class="text-lg font-semibold">Messages Sent</h2>
+                    <p id="stats-messages" class="text-3xl font-bold">0</p>
+                </div>
+            </div>
+        </section>
 
-        // --- Main App Component ---
-        const App = () => {
-            const [page, setPage] = useState('loading');
-            const [userData, setUserData] = useState(null);
-            const [error, setError] = useState('');
-            const tg = window.Telegram.WebApp;
+        <!-- Campaigns Section -->
+        <section id="campaigns" class="hidden space-y-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-4xl font-bold">Automated Campaigns</h1>
+                <button id="createCampaignBtn" class="btn-primary text-white font-bold py-2 px-4 rounded-lg">Create Campaign</button>
+            </div>
+            <div class="card p-6">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr>
+                            <th class="p-2">Name</th>
+                            <th class="p-2">Status</th>
+                            <th class="p-2">Sent</th>
+                            <th class="p-2">Replies</th>
+                            <th class="p-2">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="campaigns-table-body">
+                        <!-- Campaigns will be dynamically inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-            const sendDataToBot = useCallback((data) => {
-                try {
-                    tg.sendData(JSON.stringify(data));
-                } catch (e) {
-                    setError('Failed to communicate with the bot.');
-                    console.error(e);
-                }
-            }, [tg]);
+        <!-- Accounts Section -->
+        <section id="accounts" class="hidden space-y-8">
+             <div class="flex justify-between items-center">
+                <h1 class="text-4xl font-bold">Multi-Account Mastery</h1>
+                <button id="addAccountBtn" class="btn-primary text-white font-bold py-2 px-4 rounded-lg">Add Account</button>
+            </div>
+            <div id="accounts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Accounts will be dynamically inserted here -->
+            </div>
+        </section>
 
-            useEffect(() => {
-                tg.ready();
-                tg.expand();
-                tg.setHeaderColor('secondary_bg_color');
-                sendDataToBot({ command: 'getUserData' });
+        <!-- Customer Finder, Management, Targeting, Settings sections remain the same conceptually -->
+        <section id="customer-finder" class="hidden space-y-8">
+            <h1 class="text-4xl font-bold">Smart Customer Finder</h1>
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-4">Smart Replies & Forwards</h2>
+                <div class="flex items-center justify-between">
+                    <p>Enable smart replies to automatically engage potential customers.</p>
+                    <button id="toggle-smart-replies" class="btn-primary text-white font-bold py-2 px-4 rounded-lg">Enable</button>
+                </div>
+            </div>
+        </section>
+        
+        <section id="management" class="hidden space-y-8">
+            <h1 class="text-4xl font-bold">Streamlined Management</h1>
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-4">Manage Groups & Channels</h2>
+                <p>Bulk add/remove members, post announcements, and manage topics.</p>
+            </div>
+        </section>
 
-                const botResponseHandler = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        if (data.status === 'success') {
-                            setUserData(data.userData);
-                             // If the user just logged in successfully, move to dashboard
-                            if (page === 'login' && data.userData.session_exists) {
-                                setPage('dashboard');
-                            }
-                            // Initial load logic
-                            else if (page === 'loading') {
-                                if (data.userData.api_id && data.userData.api_hash && data.userData.session_exists) {
-                                    setPage('dashboard');
-                                } else {
-                                    setPage('login');
-                                }
-                            }
-                        } else if (data.status === 'requires_2fa') {
-                            setPage('login_2fa');
-                        } else {
-                            setError(data.message || 'An unknown error occurred.');
-                            setPage('error');
-                        }
-                    } catch (e) {
-                        setError('Invalid response from bot.');
-                        console.error("Failed to parse bot response:", e);
-                        setPage('error');
+        <section id="targeting" class="hidden space-y-8">
+            <h1 class="text-4xl font-bold">Precision Targeting</h1>
+             <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-4">Filter & Extract Audience</h2>
+                <p>Define criteria to extract a targeted list of users for your campaigns.</p>
+            </div>
+        </section>
+
+        <!-- Link Validator Section -->
+        <section id="link-validator" class="hidden space-y-8">
+            <h1 class="text-4xl font-bold">Link Validator</h1>
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-4">Telegram Link to Validate</h2>
+                <div class="flex items-center space-x-4 mb-6">
+                    <input type="text" id="link-to-validate" class="w-full p-2 bg-gray-700 rounded" placeholder="e.g., t.me/AdBitOfficial">
+                    <button id="validate-link-btn" class="btn-primary text-white font-bold py-2 px-4 rounded-lg whitespace-nowrap">Validate Link</button>
+                </div>
+                <div class="mt-6 p-4 bg-gray-900 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-2">Validation Result:</h3>
+                    <p><span class="font-bold">Status:</span> <span id="validation-status">Pending...</span></p>
+                    <p><span class="font-bold">Last Checked:</span> <span id="validation-last-checked">N/A</span></p>
+                </div>
+                <div class="mt-4 text-sm text-gray-400">
+                    <p><span class="font-bold text-green-500">Example Valid:</span> `t.me/AdBitOfficial` - Active (Public Channel)</p>
+                    <p><span class="font-bold text-red-500">Example Invalid:</span> `t.me/expired_group_link` - Not Found (404)</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="settings" class="hidden space-y-8">
+            <h1 class="text-4xl font-bold">Settings</h1>
+            <div class="card p-6">
+                <h2 class="text-2xl font-bold mb-4">Security</h2>
+                <p>Manage your account security, including two-factor authentication.</p>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Modals -->
+    <div id="addAccountModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center">
+        <div class="modal-content p-8 rounded-lg shadow-xl w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-4">Add New Account</h2>
+            <form id="addAccountForm">
+                 <div class="mb-4">
+                    <label for="accountName" class="block mb-2">Account Name (e.g., @username)</label>
+                    <input type="text" id="accountName" class="w-full p-2 bg-gray-700 rounded" required>
+                </div>
+                <p class="mb-4 text-sm text-gray-400">In a real application, you would upload your Telegram session file here to securely add an account.</p>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancelAddAccount" class="text-gray-400">Cancel</button>
+                    <button type="submit" class="btn-primary text-white font-bold py-2 px-4 rounded-lg">Add Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="createCampaignModal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center">
+        <div class="modal-content p-8 rounded-lg shadow-xl w-full max-w-lg">
+            <h2 class="text-2xl font-bold mb-4">Create a New Campaign</h2>
+            <form id="createCampaignForm">
+                <div class="mb-4">
+                    <label class="block mb-2">Campaign Name</label>
+                    <input type="text" id="campaignName" class="w-full p-2 bg-gray-700 rounded" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block mb-2">Message</label>
+                    <textarea id="campaignMessage" class="w-full p-2 bg-gray-700 rounded" rows="4" required></textarea>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button id="cancelCreateCampaign" type="button" class="text-gray-400">Cancel</button>
+                    <button type="submit" class="btn-primary text-white font-bold py-2 px-4 rounded-lg">Launch Campaign</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, collection, onSnapshot, addDoc, deleteDoc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined'
+            ? JSON.parse(__firebase_config)
+            : {
+                apiKey: "AIza...",
+                authDomain: "your-project-id.firebaseapp.com",
+                projectId: "your-project-id",
+                storageBucket: "your-project-id.appspot.com",
+                messagingSenderId: "...",
+                appId: "..."
+            };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        let app, auth, db, userId;
+
+        async function initializeFirebase() {
+             try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                onAuthStateChanged(auth, user => {
+                    if (user) {
+                        userId = user.uid;
+                        loadInitialData();
+                    } else {
+                        userId = null;
                     }
-                };
-                
-                tg.onEvent('web_app_data_received', botResponseHandler);
-                return () => tg.offEvent('web_app_data_received', botResponseHandler);
-            }, [tg, sendDataToBot]);
-            
-            const renderPage = () => {
-                if (!userData && page !== 'loading') return <LoadingScreen text="Waiting for user data..." />;
-                switch(page) {
-                    case 'loading': return <LoadingScreen text="Connecting..." />;
-                    case 'login': return <LoginScreen setStep={setPage} />;
-                    case 'login_phone': return <LoginScreen initialStep="phone" setStep={setPage} />;
-                    case 'login_otp': return <LoginScreen initialStep="otp" setStep={setPage} />;
-                    case 'login_2fa': return <LoginScreen initialStep="2fa" setStep={setPage} />;
-                    case 'dashboard': return <MainLayout />;
-                    case 'error': return <ErrorScreen message={error} />;
-                    default: return <LoadingScreen text="Loading..." />;
-                }
-            };
+                });
 
-            return (
-                <AppContext.Provider value={{ page, setPage, userData, setUserData, sendDataToBot, error, setError, tg }}>
-                    <div className="w-full min-h-screen pb-20">
-                        {renderPage()}
-                    </div>
-                </AppContext.Provider>
-            );
-        };
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) {
+                console.error("Firebase initialization failed:", e);
+                showToast("Firebase not configured correctly. App is in read-only mode.", "error");
+            }
+        }
         
-        // --- Screens & Components ---
-        const LoadingScreen = ({ text }) => (
-            <div className="flex items-center justify-center h-screen">
-                <div className="text-center">
-                    <div className="text-4xl animate-pulse">Sphinx Bot</div>
-                    <div className="mt-2">{text}</div>
-                </div>
-            </div>
-        );
+        initializeFirebase();
 
-        const ErrorScreen = ({ message }) => (
-            <div className="flex flex-col items-center justify-center h-screen p-4 text-center">
-                <h1 className="text-2xl font-bold text-destructive-color">An Error Occurred</h1>
-                <p className="mt-2 text-gray-400">{message}</p>
-            </div>
-        );
 
-        const LoginScreen = ({ initialStep = 'credentials', setStep: setPage }) => {
-            const { sendDataToBot, userData } = useContext(AppContext);
-            const [step, setStep] = useState(initialStep);
-            const [apiId, setApiId] = useState(userData?.api_id || '');
-            const [apiHash, setApiHash] = useState(userData?.api_hash || '');
-            const [phone, setPhone] = useState('');
-            const [otp, setOtp] = useState('');
-            const [password, setPassword] = useState('');
+        // --- UI NAVIGATION ---
+        const sections = document.querySelectorAll('main section');
+        const navLinks = document.querySelectorAll('nav a, .absolute a');
 
-            const handleAction = () => {
-                if (step === 'credentials') {
-                    sendDataToBot({ command: 'setApiCredentials', api_id: apiId, api_hash: apiHash });
-                    setStep('phone');
-                } else if (step === 'phone') {
-                    sendDataToBot({ command: 'sendOtp', phone_number: phone });
-                    setStep('otp');
-                } else if (step === 'otp') {
-                    sendDataToBot({ command: 'submitOtp', otp: otp });
-                } else if (step === '2fa') {
-                    sendDataToBot({ command: 'submit2fa', password: password });
-                }
-            };
+        navLinks.forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                const sectionId = link.getAttribute('data-section');
+                sections.forEach(section => section.id === sectionId ? section.classList.remove('hidden') : section.classList.add('hidden'));
+            });
+        });
 
-            return (
-                <div className="p-6">
-                    <h1 className="text-3xl font-bold text-center mb-6">Secure Login</h1>
-                    {step === 'credentials' && (
-                        <div className="space-y-4">
-                            <p className="text-center text-gray-400">Enter your Telegram API credentials.</p>
-                            <input type="text" placeholder="API ID" value={apiId} onChange={e => setApiId(e.target.value)} className="w-full p-3 rounded-lg input-field"/>
-                            <input type="text" placeholder="API Hash" value={apiHash} onChange={e => setApiHash(e.target.value)} className="w-full p-3 rounded-lg input-field"/>
-                        </div>
-                    )}
-                    {step === 'phone' && (
-                        <div className="space-y-4">
-                            <p className="text-center text-gray-400">Enter your phone number in international format.</p>
-                            <input type="text" placeholder="+1234567890" value={phone} onChange={e => setPhone(e.target.value)} className="w-full p-3 rounded-lg input-field"/>
-                        </div>
-                    )}
-                    {step === 'otp' && (
-                         <div className="space-y-4">
-                            <p className="text-center text-gray-400">An OTP has been sent to your Telegram account.</p>
-                            <input type="text" placeholder="OTP Code" value={otp} onChange={e => setOtp(e.target.value)} className="w-full p-3 rounded-lg input-field"/>
-                        </div>
-                    )}
-                     {step === '2fa' && (
-                         <div className="space-y-4">
-                             <p className="text-center text-gray-400">Your account has Two-Factor Authentication enabled. Please enter your password.</p>
-                             <input type="password" placeholder="2FA Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-3 rounded-lg input-field"/>
-                        </div>
-                    )}
-                    <div className="mt-8">
-                        <button onClick={handleAction} className="w-full p-3 rounded-lg btn-primary font-bold text-lg">
-                            {step === 'credentials' && 'Save & Continue'}
-                            {step === 'phone' && 'Send OTP'}
-                            {step === 'otp' && 'Submit OTP'}
-                            {step === '2fa' && 'Submit Password'}
-                        </button>
-                    </div>
-                </div>
-            );
-        };
+        // --- DATA LOADING & RENDERING ---
+        function loadInitialData() {
+            if (!userId) return;
+            loadAccounts();
+            loadCampaigns();
+            loadStats();
+        }
 
-        const MainLayout = () => {
-            const [activeTab, setActiveTab] = useState('dashboard');
-            
-            const renderContent = () => {
-                switch(activeTab) {
-                    case 'dashboard': return <Dashboard />;
-                    case 'posts': return <ManagePosts />;
-                    case 'groups': return <ManageGroups />;
-                    case 'settings': return <Settings />;
-                    default: return <Dashboard />;
-                }
-            };
+        function loadStats() {
+            const statsDocRef = doc(db, "users", userId, "stats", "summary");
+            onSnapshot(statsDocRef, (doc) => {
+                const data = doc.data() || { campaigns: 0, accounts: 0, customers: 0, messages: 0 };
+                document.getElementById('stats-campaigns').textContent = data.campaigns;
+                document.getElementById('stats-accounts').textContent = data.accounts;
+                document.getElementById('stats-customers').textContent = data.customers;
+                document.getElementById('stats-messages').textContent = data.messages;
+            });
+        }
 
-            return (
-                <div>
-                    <div className="p-4">{renderContent()}</div>
-                    <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
-                </div>
-            );
-        };
+        function loadAccounts() {
+            const accountsColRef = collection(db, "users", userId, "accounts");
+            onSnapshot(accountsColRef, (snapshot) => {
+                const accountsGrid = document.getElementById('accounts-grid');
+                accountsGrid.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const account = doc.data();
+                    const accountCard = `
+                        <div class="card p-6 flex items-center justify-between space-x-4">
+                            <div class="flex items-center space-x-4">
+                               <img src="https://placehold.co/64x64/1f4068/e0e0e0?text=${account.name.charAt(0).toUpperCase()}" class="rounded-full">
+                                <div>
+                                    <p class="font-bold">${account.name}</p>
+                                    <p class="text-sm text-green-500">Active</p>
+                                </div>
+                            </div>
+                            <button data-id="${doc.id}" class="delete-account-btn btn-danger text-white font-bold py-1 px-3 rounded-lg text-xs">Delete</button>
+                        </div>`;
+                    accountsGrid.innerHTML += accountCard;
+                });
+            });
+        }
         
-        const Dashboard = () => {
-            const { userData, sendDataToBot, tg } = useContext(AppContext);
-
-            const toggleForwarding = () => {
-                const command = userData.forwarding_on ? 'stopForwarding' : 'startForwarding';
-                sendDataToBot({ command });
-                tg.HapticFeedback.impactOccurred('light');
-            };
-
-            return (
-                <div className="space-y-5">
-                    <Header />
-                    <StatGrid />
-                    <button onClick={toggleForwarding} className={`w-full p-4 rounded-lg text-lg font-bold ${userData.forwarding_on ? 'btn-destructive' : 'btn-primary'}`}>
-                        {userData.forwarding_on ? 'Stop Forwarding' : 'Start Forwarding'}
-                    </button>
-                    <div className="card rounded-lg p-4">
-                        <h3 className="font-bold mb-2">Subscription</h3>
-                        <p>Your plan expires on: <span className="font-mono">{userData.expiry_date}</span></p>
-                    </div>
-                </div>
-            );
-        };
-
-        const ManagePosts = () => {
-            const { userData, sendDataToBot } = useContext(AppContext);
-            // Implement Add/Remove/List for userData.post_messages
-            return <div>Post management UI goes here.</div>
+        function loadCampaigns() {
+            const campaignsColRef = collection(db, "users", userId, "campaigns");
+             onSnapshot(campaignsColRef, (snapshot) => {
+                const campaignsBody = document.getElementById('campaigns-table-body');
+                campaignsBody.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const campaign = doc.data();
+                    const campaignRow = `
+                        <tr>
+                            <td class="p-2">${campaign.name}</td>
+                            <td class="p-2 text-green-500">Active</td>
+                            <td class="p-2">${campaign.sent || 0}</td>
+                            <td class="p-2">${campaign.replies || 0}</td>
+                            <td class="p-2">
+                                <button data-id="${doc.id}" class="delete-campaign-btn text-red-500 hover:underline">Delete</button>
+                            </td>
+                        </tr>`;
+                    campaignsBody.innerHTML += campaignRow;
+                });
+            });
         }
 
-        const ManageGroups = () => {
-            const { userData, sendDataToBot } = useContext(AppContext);
-            // Implement Add/Remove/List for userData.groups
-            return <div>Group management UI goes here.</div>
+        // --- ACTIONS & EVENT LISTENERS ---
+        document.getElementById('addAccountForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const accountName = document.getElementById('accountName').value;
+            if (!accountName.trim()) return;
+
+            try {
+                await addDoc(collection(db, `users/${userId}/accounts`), {
+                    name: accountName,
+                    status: 'active',
+                    createdAt: serverTimestamp()
+                });
+                await updateStats('accounts', 1);
+                showToast('Account added successfully!', 'success');
+                closeModal('addAccountModal');
+                e.target.reset();
+            } catch (err) {
+                showToast('Failed to add account.', 'error');
+                console.error(err);
+            }
+        });
+
+        document.getElementById('createCampaignForm').addEventListener('submit', async (e) => {
+             e.preventDefault();
+             const campaignName = document.getElementById('campaignName').value;
+             const campaignMessage = document.getElementById('campaignMessage').value;
+             if(!campaignName.trim() || !campaignMessage.trim()) return;
+
+             try {
+                 await addDoc(collection(db, `users/${userId}/campaigns`), {
+                     name: campaignName,
+                     message: campaignMessage,
+                     status: 'active',
+                     sent: 0,
+                     replies: 0,
+                     createdAt: serverTimestamp()
+                 });
+                 await updateStats('campaigns', 1);
+                 showToast('Campaign created successfully!', 'success');
+                 closeModal('createCampaignModal');
+                 e.target.reset();
+             } catch(err) {
+                 showToast('Failed to create campaign.', 'error');
+                 console.error(err);
+             }
+        });
+
+        document.getElementById('validate-link-btn').addEventListener('click', () => {
+            const linkInput = document.getElementById('link-to-validate');
+            const statusEl = document.getElementById('validation-status');
+            const lastCheckedEl = document.getElementById('validation-last-checked');
+            const link = linkInput.value.trim();
+
+            if (!link || !link.toLowerCase().includes('t.me/')) {
+                showToast('Please enter a valid Telegram link (e.g., t.me/username)', 'error');
+                return;
+            }
+
+            statusEl.textContent = 'Validating...';
+            statusEl.className = 'text-yellow-500';
+            lastCheckedEl.textContent = 'N/A';
+
+            // Simulate API call
+            setTimeout(() => {
+                const isValid = Math.random() > 0.4; // 60% chance of being valid
+                if (isValid) {
+                    statusEl.textContent = 'Active (Public Channel/Group)';
+                    statusEl.className = 'text-green-500';
+                } else {
+                    statusEl.textContent = 'Not Found (404) or Private';
+                    statusEl.className = 'text-red-500';
+                }
+                lastCheckedEl.textContent = new Date().toLocaleString();
+            }, 1500);
+        });
+        
+        // --- Deletion Listeners (using event delegation)
+        document.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('delete-account-btn')) {
+                const docId = e.target.dataset.id;
+                if (confirm('Are you sure you want to delete this account?')) {
+                    try {
+                        await deleteDoc(doc(db, `users/${userId}/accounts`, docId));
+                        await updateStats('accounts', -1);
+                        showToast('Account deleted.', 'success');
+                    } catch (err) {
+                        showToast('Error deleting account.', 'error');
+                    }
+                }
+            }
+            if (e.target.classList.contains('delete-campaign-btn')) {
+                const docId = e.target.dataset.id;
+                 if (confirm('Are you sure you want to delete this campaign?')) {
+                    try {
+                        await deleteDoc(doc(db, `users/${userId}/campaigns`, docId));
+                        await updateStats('campaigns', -1);
+                        showToast('Campaign deleted.', 'success');
+                    } catch (err) {
+                        showToast('Error deleting campaign.', 'error');
+                    }
+                }
+            }
+        });
+
+
+        async function updateStats(field, increment) {
+            const statsDocRef = doc(db, "users", userId, "stats", "summary");
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const statsDoc = await transaction.get(statsDocRef);
+                    if (!statsDoc.exists()) {
+                        transaction.set(statsDocRef, { [field]: increment });
+                    } else {
+                        const newCount = (statsDoc.data()[field] || 0) + increment;
+                        transaction.update(statsDocRef, { [field]: newCount < 0 ? 0 : newCount });
+                    }
+                });
+            } catch (e) {
+                console.error("Transaction failed: ", e);
+            }
         }
 
-        const Settings = () => {
-            const { userData, sendDataToBot } = useContext(AppContext);
-            // Implement settings toggles and logout
-            return (
-                <div className="space-y-4">
-                    <h1 className="text-2xl font-bold">Settings</h1>
-                    {/* Add settings controls here */}
-                     <button onClick={() => sendDataToBot({ command: 'logout' })} className="w-full p-3 rounded-md card">Logout & Clear Session</button>
-                </div>
-            );
+
+        // --- MODAL HANDLING ---
+        const addAccountModal = document.getElementById('addAccountModal');
+        const createCampaignModal = document.getElementById('createCampaignModal');
+
+        const openModal = (modalId) => document.getElementById(modalId).classList.remove('hidden');
+        const closeModal = (modalId) => document.getElementById(modalId).classList.add('hidden');
+
+        document.getElementById('addAccountBtn').addEventListener('click', () => openModal('addAccountModal'));
+        document.getElementById('cancelAddAccount').addEventListener('click', () => closeModal('addAccountModal'));
+        document.getElementById('createCampaignBtn').addEventListener('click', () => openModal('createCampaignModal'));
+        document.getElementById('cancelCreateCampaign').addEventListener('click', () => closeModal('createCampaignModal'));
+
+        // --- UTILITIES ---
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast show ${type}`;
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
         }
-
-        const BottomNav = ({ activeTab, setActiveTab }) => {
-            const NavItem = ({ tab, icon, label }) => (
-                <button onClick={() => setActiveTab(tab)} className={`flex-1 flex flex-col items-center p-2 ${activeTab === tab ? 'nav-item-active' : ''}`}>
-                    <span className="text-2xl">{icon}</span>
-                    <span className="text-xs">{label}</span>
-                </button>
-            );
-
-            return (
-                <div className="fixed bottom-0 left-0 right-0 card flex border-t border-gray-700">
-                    <NavItem tab="dashboard" icon="🏠" label="Home" />
-                    <NavItem tab="posts" icon="📝" label="Posts" />
-                    <NavItem tab="groups" icon="👥" label="Groups" />
-                    <NavItem tab="settings" icon="⚙️" label="Settings" />
-                </div>
-            );
-        };
-
-        const Header = () => {
-            const { userData } = useContext(AppContext);
-            const statusClass = userData.forwarding_on ? 'bg-green-500' : 'bg-red-500';
-            const statusText = userData.forwarding_on ? 'Active' : 'Inactive';
-            
-            return (
-                 <div className="text-center p-4 card rounded-lg">
-                    <h1 className="text-3xl font-bold">Sphinx Control Panel</h1>
-                    <div className="flex items-center justify-center space-x-2 mt-1">
-                        <span className={`w-3 h-3 rounded-full ${statusClass}`}></span>
-                        <span>Forwarding: {statusText}</span>
-                    </div>
-                 </div>
-            );
-        };
-
-        const StatGrid = () => {
-             const { userData } = useContext(AppContext);
-             return (
-                <div className="grid grid-cols-2 gap-4">
-                    <StatCard title="Groups" value={userData.groups.length} />
-                    <StatCard title="Posts" value={userData.post_messages.length} />
-                    <StatCard title="Keywords" value={Object.keys(userData.keywords).length} />
-                    <StatCard title="Interval" value={`${userData.interval}s`} />
-                </div>
-             );
-        };
-
-        const StatCard = ({ title, value }) => (
-            <div className="p-4 text-center rounded-lg card">
-                <div className="text-gray-400">{title}</div>
-                <div className="text-2xl font-bold">{value}</div>
-            </div>
-        );
-
-        // --- Render the App ---
-        const container = document.getElementById('root');
-        const root = ReactDOM.createRoot(container);
-        root.render(<App />);
 
     </script>
 </body>
